@@ -1,8 +1,5 @@
 require "json_schema/coverage"
 
-require "json_schema/faker"
-#require "json_schema/faker/strategy/simple"
-
 class JsonSchema::Coverage
   module C0
     def print_c0
@@ -40,19 +37,21 @@ class JsonSchema::Coverage
     end
 
     def check_c0(schema:, data:, levels: [])
-      schema = ::JsonSchema::Faker::Strategy::Simple.new.compact_schema(schema, position: "")
-
-      schema.properties.each do |name, sub_schema|
-        if data.has_key?(name)
-          if data[name].is_a?(Hash)
-            check_c0(schema: sub_schema, data: data[name], levels: [*levels, :properties, name])
-          else
-            mark_c0(*levels, :properties, name)
+      if data.is_a?(Hash)
+        schema.properties.each do |name, sub_schema|
+          if data.has_key?(name)
+            if data[name].is_a?(Hash)
+              check_c0(schema: sub_schema, data: data[name], levels: [*levels, :properties, name])
+            else
+              mark_c0(*levels, :properties, name)
+            end
           end
         end
-      end
-      schema.pattern_properties.each do |pattern, schema|
-        mark_c0(*levels, :pattern_properties, pattern.source) unless data.keys.grep(pattern).empty?
+        schema.pattern_properties.each do |pattern, schema|
+          mark_c0(*levels, :pattern_properties, pattern.source) unless data.keys.grep(pattern).empty?
+        end
+      else
+        mark_c0(*levels)
       end
     end
 

@@ -11,11 +11,7 @@ module JsonSchema
 
     def run(tests)
       tests.each do |test|
-        begin
-          schema = resolve_schema(test["schema"])
-        rescue => e
-          binding.pry
-        end
+        schema = resolve_schema(test["schema"])
 
         levels = [ schema.uri, *schema.pointer.gsub(/^#/, "").split("/") ]
 
