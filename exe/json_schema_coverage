@@ -1,1 +1,5 @@
 #!/usr/bin/env ruby
+
+require "json_schema/coverage/cli"
+
+::JsonSchema::Coverage::CLI.start
