@@ -8,10 +8,15 @@ class JsonSchema::Coverage
       @store.each do |uri, schema|
         do_recurvively(collect_schema(from: schema, keywords: %i[ definitions properties pattern_properties ])) do |*levels, value|
           unless %i[ definitions properties pattern_properties ].include?(levels.last)
-            if c0[uri]&.dig(*levels)
+            if c0[uri]&.dig(*levels, :value)
               results["#{uri}#/#{levels.join("/")}"] = true
             else
-              results["#{uri}#/#{levels.join("/")}"] = false
+              if c0[uri]&.dig(*levels[0..-3], :value)
+                results["#{uri}#/#{levels[0..-3].join("/")}"] = true
+                results["#{uri}#/#{levels.join("/")}"] = false
+              else
+                results["#{uri}#/#{levels.join("/")}"] = false
+              end
             end
           end
         end
