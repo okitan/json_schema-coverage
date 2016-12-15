@@ -26,7 +26,8 @@ class JsonSchema::Coverage
       store  = ::JsonSchema::DocumentStore.new
 
       files.each {|file| store.add_schema(::JsonSchema.parse!(::MultiJson.load(::File.read(file)))) }
-      store.each {|uri, schema| schema.expand_references! } # no lazy
+      store.each {|uri, schema| schema.expand_references(store: store) }  # no lazy
+      store.each {|uri, schema| schema.expand_references!(store: store) } # for circular reference
 
       store
     end

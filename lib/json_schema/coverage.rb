@@ -1,12 +1,9 @@
 require "json_schema"
 require "json_schema/coverage/c0"
 
-require "pp"
-
 module JsonSchema
   class Coverage
     include C0
-    attr_reader :c0
 
     def initialize(store)
       @store  = store
@@ -14,7 +11,11 @@ module JsonSchema
 
     def run(tests)
       tests.each do |test|
-        schema = resolve_schema(test["schema"])
+        begin
+          schema = resolve_schema(test["schema"])
+        rescue => e
+          binding.pry
+        end
 
         levels = [ schema.uri, *schema.pointer.gsub(/^#/, "").split("/") ]
 
@@ -85,7 +86,7 @@ module JsonSchema
 
     def resolve_schema(schema)
       if schema.has_key?("$ref")
-        ::JsonReference.reference(schema["$ref"]).resolve_pointer(@store.lookup_schema(schema["$ref"]))
+        ::JsonReference.reference(schema["$ref"]).resolve_pointer(@store.lookup_schema(schema["$ref"].split("#").first))
       else
         ::JsonScheam::Schema.parse(schema).expand_references!()
       end

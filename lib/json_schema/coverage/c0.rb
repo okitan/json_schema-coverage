@@ -1,12 +1,16 @@
 require "json_schema/coverage"
 
+require "json_schema/faker"
+#require "json_schema/faker/strategy/simple"
+
 class JsonSchema::Coverage
   module C0
     def print_c0
       results = {}
 
       @store.each do |uri, schema|
-        do_recurvively(collect_schema(from: schema, keywords: %i[ definitions properties pattern_properties ])) do |*levels, value|
+        do_recurvively(collect_schema(from: schema, keywords: %i[ properties pattern_properties ])) do |*levels, value|
+        #do_recurvively(collect_schema(from: schema, keywords: %i[ definitions properties pattern_properties ])) do |*levels, value|
           unless %i[ definitions properties pattern_properties ].include?(levels.last)
             if c0[uri]&.dig(*levels, :value)
               results["#{uri}#/#{levels.join("/")}"] = true
@@ -31,7 +35,13 @@ class JsonSchema::Coverage
     end
 
     protected
+    def c0
+      @c0 ||= {}
+    end
+
     def check_c0(schema:, data:, levels: [])
+      schema = ::JsonSchema::Faker::Strategy::Simple.new.compact_schema(schema, position: "")
+
       schema.properties.each do |name, sub_schema|
         if data.has_key?(name)
           if data[name].is_a?(Hash)
@@ -47,8 +57,7 @@ class JsonSchema::Coverage
     end
 
     def mark_c0(*levels)
-      @c0 ||= {}
-      parent, data = @c0, @c0
+      parent, data = c0, c0
 
       levels.each do |key|
         data[key] ||= {}
